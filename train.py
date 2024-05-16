@@ -1,5 +1,3 @@
-import matplotlib
-matplotlib.use('Agg')  # Use a non-interactive backend
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
