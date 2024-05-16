@@ -1,29 +1,42 @@
 name: your-workflow-name
+
 on: [push]
+
 jobs:
   run:
     runs-on: ubuntu-latest
-    # optionally use a convenient Ubuntu LTS + DVC + CML image
-    # container: ghcr.io/iterative/cml:0-dvc2-base1
+
     steps:
       - uses: actions/checkout@v3
-      # may need to setup NodeJS & Python3 on e.g. self-hosted
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: '16'
-      # - uses: actions/setup-python@v4
-      #   with:
-      #     python-version: '3.x'
+
       - uses: iterative/setup-cml@v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Train model
         run: |
-          # Your ML workflow goes here
-          pip install -r requirements.txt
+          python -c "import matplotlib; matplotlib.use('Agg')"  # Use the 'Agg' backend
           python train.py
+
+      - name: Save plot artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: plot
+          path: plot.png
+
       - name: Write CML report
         env:
           REPO_TOKEN: ${{ secrets.TOKEN_GITHUB }}
         run: |
           # Post reports as comments in GitHub PRs
           cat metrics.txt >> report.md
+          echo "![Confusion Matrix](plot.png)" >> report.md
           cml comment create report.md
